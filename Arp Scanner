@@ -1,0 +1,57 @@
+from scapy.all import *
+import time
+from colorama import Fore, Style, init
+
+# Create a function called colorize(text, color)
+def colorize(text, color):
+    colors={
+        "white":Fore.WHITE,
+        "green":Fore.LIGHTGREEN_EX,
+        "lightgreen":Fore.GREEN,
+        "yellow":Fore.YELLOW,
+        "blue":Fore.BLUE,
+        "red":Fore.RED,
+        "magenta":Fore.MAGENTA,
+        "cyan":Fore.CYAN,
+    }
+    return colors.get(color) + str(text) + Style.RESET_ALL
+# We want to make an arp scanner to scan all active hosts on a device.
+
+# create a function called scan
+def scan(ip):
+
+# Create an arp packet to ask who has?
+    arp_request = ARP(pdst=ip)
+
+# Create an Ether packet with the broadcast address
+    broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+
+# Now combine the arp_request with the broadcast packet with /
+    arp_request_broadcast = broadcast / arp_request
+
+# Now send the combined packet across the wire and capture the response.
+    cap_res = srp(arp_request_broadcast, timeout=5, verbose=True)[0]
+
+# Create an empty list to store any found network nodes
+    store_network_devices = []
+
+# create a for loop to append to the empty list
+    for packet in cap_res:
+        store_network_devices.append({"Ip": packet[1].psrc,
+                                      "Mac": packet[1].hwsrc
+                                      })
+
+# return captured devices
+    return store_network_devices
+
+# ask for user input ip_range
+ip_range = input("IPv4 Range??:")
+
+# call the function scan() the ip range
+scanned_devices = scan(ip_range)
+
+# for loop the called function
+# scan, print out the scanned devices ip & mac
+for scan in scanned_devices:
+    print(colorize(f" Active IP: {scan['Ip']}", color="green"))
+    print(colorize(f"Mac: {scan['Mac']}", color="yellow"))
